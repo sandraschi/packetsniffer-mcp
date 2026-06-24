@@ -1,0 +1,109 @@
+# PacketsnifferMcp — Full LLM Reference
+
+MCP server for local network packet capture and PCAP file analysis
+
+## Stack
+- Python 3.12+ · FastMCP 3.4+ · prefab-ui >= 0.18.0
+- httpx, pydantic v2, structlog
+- uv (package manager), ruff (lint), pytest (test)
+
+## Server Entry Points
+
+| Mode | Command |
+|------|---------|
+| stdio (Claude Desktop / Cursor) | `uv run python -m packetsniffer_mcp` |
+| HTTP (Tauri / webapp) | `uv run python -m packetsniffer_mcp --http --port <port>` |
+| CodeMode agentic | `uv run python -m packetsniffer_mcp --agentic` |
+| PyInstaller | `python run_server.py` |
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PACKETSNIFFER_MCP_SAMPLING_BASE_URL` | `http://127.0.0.1:11434/v1` | Ollama / LM Studio base URL |
+| `PACKETSNIFFER_MCP_SAMPLING_MODEL` | `llama3.2` | Model name for sampling |
+| `PACKETSNIFFER_MCP_SAMPLING_API_KEY` | — | Optional API key for sampling endpoint |
+| `MCP_PORT` | `10800` | HTTP transport port |
+| `MCP_HOST` | `127.0.0.1` | HTTP transport bind address |
+| `MCP_AGENTIC` | — | Set to `1` to enable CodeMode |
+
+## Fleet Surface
+
+### Tools
+- `help` — List available tools and resources
+- `status` — Server health, version, tool count
+- `agentic_packetsniffer_mcp_workflow` — Multi-step sampling workflow (SEP-1577)
+- `packetsniffer_mcp_status_card` — Prefab UI health card
+
+### Resources
+- `resource://packetsniffer-mcp/skills` — Agent skill instructions
+- `resource://packetsniffer-mcp/capabilities` — Server capability summary
+
+### Prompts
+- `packetsniffer_mcp_session` — Session priming prompt
+
+## Tool Registration Pattern
+
+All tools use the FastMCP 3.4+ decorator pattern with Pydantic v2 annotations:
+
+```python
+from fastmcp import FastMCP, Context
+from typing import Annotated
+from pydantic import Field
+
+mcp = FastMCP("packetsniffer-mcp")
+
+@mcp.tool(annotations={"readOnlyHint": True})
+async def my_tool(
+    param: Annotated[str, Field(description="Parameter description")],
+    ctx: Context = None,
+) -> dict:
+    """Tool description — no Args: section needed.
+
+    ## Return Format
+    {"success": bool, "data": {...}}
+
+    ## Examples
+    await my_tool(param="value")
+    """
+    return {"success": True, "data": {"param": param}}
+```
+
+## Portmanteau Pattern
+
+For servers with many related operations, use the portmanteau pattern:
+
+```python
+from typing import Literal
+
+@mcp.tool()
+async def domain_ops(
+    operation: Annotated[Literal["list", "get", "create"], Field(description="Operation to perform")],
+    item_id: Annotated[str | None, Field(description="Item ID")] = None,
+) -> dict:
+    """Domain operations portmanteau.
+
+    [RATIONALE] Consolidated 3 operations to stay under tool limits.
+
+    ## Return Format
+    {"success": bool, "operation": str, "data": {...}}
+    """
+    ...
+```
+
+## Dependencies
+
+```toml
+[project]
+dependencies = [
+    "fastmcp>=3.2,<4",
+    "prefab-ui>=0.18.0",
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "structlog>=24.0",
+]
+```
+
+## License
+
+MIT © 2026 MCP Studio

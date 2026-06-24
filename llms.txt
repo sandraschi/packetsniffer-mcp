@@ -1,0 +1,23 @@
+# packetsniffer-mcp
+
+> MCP server for local network packet capture and PCAP file analysis
+
+## Docs
+- [README.md](./README.md): Overview, install, run, API
+- [llms-full.txt](./llms-full.txt): Full tool reference, architecture, LLM providers
+
+## Tools
+- `help`: List capabilities and fleet surface
+- `status`: Server health and version
+- `chat`: Multi-provider LLM chat (Ollama, LM Studio, OpenAI, Anthropic, Google)
+- `agentic_packetsniffer_mcp_workflow`: Multi-step sampling workflow
+- `packetsniffer_mcp_status_card`: Prefab health card
+
+## REST API (HTTP mode)
+- `GET /health` · `GET /api/v1/diagnostics` · `GET /api/v1/tools`
+- `GET /api/v1/providers` · `POST /api/v1/chat` (streaming supported)
+
+## Optional
+- [CHANGELOG.md](./CHANGELOG.md)
+- [PRD.md](./PRD.md)
+- [glama.json](./glama.json)

@@ -1,0 +1,13 @@
+{
+  "name": "packetsniffer-mcp",
+  "description": "MCP server for local network packet capture and PCAP file analysis",
+  "version": "0.1.0",
+  "author": "MCP Studio",
+  "license": "MIT",
+  "tags": [
+    "mcp",
+    "fastmcp",
+    "python"
+  ],
+  "repository": "https://github.com/sandraschi/packetsniffer-mcp"
+}

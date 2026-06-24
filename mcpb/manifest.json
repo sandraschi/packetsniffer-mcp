@@ -1,0 +1,21 @@
+{
+  "manifest_version": "0.3",
+  "name": "packetsniffer-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for local network packet capture and PCAP file analysis",
+  "author": {
+    "name": "MCP Studio"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "python",
+    "entry_point": "src/packetsniffer_mcp/__main__.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["--directory", "${__dirname}", "run", "python", "-m", "packetsniffer_mcp"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
