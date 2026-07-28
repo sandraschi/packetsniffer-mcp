@@ -10,7 +10,8 @@ from dataclasses import dataclass
 @dataclass
 class LLMProvider:
     """LLM provider with endpoint, model, and API key."""
-    provider: str          # ollama | lmstudio | openai | anthropic | google
+
+    provider: str  # ollama | lmstudio | openai | anthropic | google
     base_url: str
     model: str
     api_key: str | None = None

@@ -33,6 +33,7 @@ app.add_middleware(
 
 # ── Health ──
 
+
 @app.get("/health")
 async def health():
     """Basic health check."""
@@ -50,6 +51,7 @@ async def diagnostics():
     tool_names: list[str] = []
     try:
         from packetsniffer_mcp.mcp_instance import get_mcp
+
         mcp = get_mcp()
         tools_list = await mcp.list_tools()
         tool_names = [t.name for t in tools_list] if tools_list else []
@@ -76,6 +78,7 @@ async def list_tools():
     """List all registered MCP tools with their schemas."""
     try:
         from packetsniffer_mcp.mcp_instance import get_mcp
+
         mcp = get_mcp()
         tools = await mcp.list_tools()
         return {
@@ -88,6 +91,7 @@ async def list_tools():
 
 
 # ── Chat ──
+
 
 class ChatRequest(BaseModel):
     prompt: str
@@ -106,6 +110,7 @@ async def chat(req: ChatRequest):
     config = get_llm_config()
     if req.provider and req.provider != config.provider:
         from packetsniffer_mcp.config import LLMProvider, PRESETS  # noqa: I001
+
         preset = PRESETS.get(req.provider)
         if not preset:
             raise HTTPException(400, f"Unknown provider: {req.provider}")
@@ -120,18 +125,26 @@ async def chat(req: ChatRequest):
     client = LLMClient(config)
 
     if req.stream:
+
         async def _stream():
             async for token in client.chat_stream(
-                req.prompt, system=req.system, history=req.history,
-                temperature=req.temperature, max_tokens=req.max_tokens,
+                req.prompt,
+                system=req.system,
+                history=req.history,
+                temperature=req.temperature,
+                max_tokens=req.max_tokens,
             ):
                 yield f"data: {json.dumps({'token': token})}\n\n"
             yield "data: [DONE]\n\n"
+
         return StreamingResponse(_stream(), media_type="text/event-stream")
 
     result = await client.chat(
-        req.prompt, system=req.system, history=req.history,
-        temperature=req.temperature, max_tokens=req.max_tokens,
+        req.prompt,
+        system=req.system,
+        history=req.history,
+        temperature=req.temperature,
+        max_tokens=req.max_tokens,
     )
     return result
 
@@ -140,11 +153,11 @@ async def chat(req: ChatRequest):
 async def list_providers():
     """List available LLM providers with their presets."""
     from packetsniffer_mcp.config import PRESETS, detect_local_provider
+
     local = detect_local_provider()
     return {
         "providers": [
-            {"name": k, "base_url": v.base_url, "model": v.model, "is_local": v.is_local}
-            for k, v in PRESETS.items()
+            {"name": k, "base_url": v.base_url, "model": v.model, "is_local": v.is_local} for k, v in PRESETS.items()
         ],
         "active": get_llm_config().provider,
         "local_detected": local.provider if local else None,

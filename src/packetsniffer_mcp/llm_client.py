@@ -55,14 +55,23 @@ class LLMClient:
             return {"error": str(e), "content": "", "model": self.provider.model}
 
     async def _chat_openai_compat(
-        self, client: httpx.AsyncClient, messages: list, temperature: float, max_tokens: int,
+        self,
+        client: httpx.AsyncClient,
+        messages: list,
+        temperature: float,
+        max_tokens: int,
     ) -> dict[str, Any]:
         headers = {}
         if self.provider.api_key:
             headers["Authorization"] = f"Bearer {self.provider.api_key}"
         resp = await client.post(
             f"{self.provider.base_url.rstrip('/')}/chat/completions",
-            json={"model": self.provider.model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens},
+            json={
+                "model": self.provider.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            },
             headers=headers,
         )
         resp.raise_for_status()
@@ -71,7 +80,11 @@ class LLMClient:
         return {"success": True, "content": content, "model": self.provider.model, "provider": self.provider.provider}
 
     async def _chat_anthropic(
-        self, client: httpx.AsyncClient, messages: list, temperature: float, max_tokens: int,
+        self,
+        client: httpx.AsyncClient,
+        messages: list,
+        temperature: float,
+        max_tokens: int,
     ) -> dict[str, Any]:
         system = next((m["content"] for m in messages if m["role"] == "system"), None)
         user_msgs = [m for m in messages if m["role"] != "system"]
@@ -89,7 +102,8 @@ class LLMClient:
             body["system"] = system
         resp = await client.post(
             f"{self.provider.base_url.rstrip('/')}/messages",
-            json=body, headers=headers,
+            json=body,
+            headers=headers,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -97,7 +111,12 @@ class LLMClient:
         return {"success": True, "content": content, "model": self.provider.model, "provider": "anthropic"}
 
     async def _chat_google(
-        self, client: httpx.AsyncClient, prompt: str, system: str | None, temperature: float, max_tokens: int,
+        self,
+        client: httpx.AsyncClient,
+        prompt: str,
+        system: str | None,
+        temperature: float,
+        max_tokens: int,
     ) -> dict[str, Any]:
         api_key = self.provider.api_key or ""
         contents = [{"parts": [{"text": prompt}], "role": "user"}]
@@ -106,21 +125,27 @@ class LLMClient:
         resp = await client.post(
             f"{self.provider.base_url.rstrip('/')}/models/{self.provider.model}:generateContent",
             params={"key": api_key},
-            json={"contents": contents, "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens}},
+            json={
+                "contents": contents,
+                "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens},
+            },
         )
         resp.raise_for_status()
         data = resp.json()
         content = "".join(
-            p.get("text", "") for c in data.get("candidates", [])
-            for p in c.get("content", {}).get("parts", [])
+            p.get("text", "") for c in data.get("candidates", []) for p in c.get("content", {}).get("parts", [])
         )
         return {"success": True, "content": content, "model": self.provider.model, "provider": "google"}
 
     # -- Streaming chat (SSE) --
 
     async def chat_stream(
-        self, prompt: str, system: str | None = None, history: list[dict[str, str]] | None = None,
-        temperature: float = 0.7, max_tokens: int = 2048,
+        self,
+        prompt: str,
+        system: str | None = None,
+        history: list[dict[str, str]] | None = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2048,
     ) -> AsyncIterator[str]:
         """Stream chat completion tokens."""
         messages: list[dict[str, str]] = []
@@ -137,7 +162,13 @@ class LLMClient:
             async with client.stream(
                 "POST",
                 f"{self.provider.base_url.rstrip('/')}/chat/completions",
-                json={"model": self.provider.model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens, "stream": True},
+                json={
+                    "model": self.provider.model,
+                    "messages": messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "stream": True,
+                },
                 headers=headers,
             ) as resp:
                 resp.raise_for_status()
@@ -158,6 +189,10 @@ class LLMClient:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.get(f"{self.provider.base_url.rstrip('/')}/models")
-                return {"reachable": resp.status_code < 500, "provider": self.provider.provider, "model": self.provider.model}
+                return {
+                    "reachable": resp.status_code < 500,
+                    "provider": self.provider.provider,
+                    "model": self.provider.model,
+                }
         except Exception as e:
             return {"reachable": False, "provider": self.provider.provider, "error": str(e)}

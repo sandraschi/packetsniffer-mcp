@@ -1,4 +1,4 @@
-# packetsniffer-mcp — dev launcher
+﻿# packetsniffer-mcp - dev launcher
 param([switch]$Headless, [switch]$NoBrowser)
 
 $ErrorActionPreference = "Stop"

@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 async def chat(
     prompt: Annotated[str, Field(description="The message or question to send to the LLM.")],
     system: Annotated[str | None, Field(description="Optional system prompt to set context.")] = None,
-    provider: Annotated[str | None, Field(description="Override provider: ollama, lmstudio, openai, anthropic, google.")] = None,
+    provider: Annotated[
+        str | None, Field(description="Override provider: ollama, lmstudio, openai, anthropic, google.")
+    ] = None,
     model: Annotated[str | None, Field(description="Override model name.")] = None,
     temperature: Annotated[float, Field(description="Sampling temperature 0.0-2.0.", ge=0.0, le=2.0)] = 0.7,
     max_tokens: Annotated[int, Field(description="Max tokens in response.", ge=1, le=32768)] = 2048,
@@ -49,6 +51,7 @@ async def chat(
     # Provider override
     if provider and provider != config.provider:
         from packetsniffer_mcp.config import LLMProvider, PRESETS  # noqa: I001
+
         preset = PRESETS.get(provider)
         if not preset:
             return {"success": False, "error": f"Unknown provider: {provider}. Valid: {', '.join(PRESETS)}"}

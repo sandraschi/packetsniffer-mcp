@@ -23,6 +23,7 @@ def register_all_tools(mcp=None) -> None:
     import packetsniffer_mcp.tools.agentic_workflow as _aw  # noqa: F401, I001
     import packetsniffer_mcp.tools.help_tools as _ht  # noqa: F401
     import packetsniffer_mcp.tools.chat_tool as _ct  # noqa: F401
+    import packetsniffer_mcp.tools.sniffer_tools as _st  # noqa: F401
     from packetsniffer_mcp.fleet_surface import register_fleet_surface
 
     register_fleet_surface(mcp)

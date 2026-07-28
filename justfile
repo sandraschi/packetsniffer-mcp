@@ -1,4 +1,4 @@
-set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 
 default:
     @just --list
@@ -25,6 +25,6 @@ test:
     uv run pytest tests/ -v
 
 mcpb-pack:
-    @pwsh -NoLogo -File scripts/pack.ps1
+    @powershell.exe -NoProfile -File scripts/pack.ps1
 
 ci: lint test
