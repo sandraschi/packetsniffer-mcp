@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 $ScriptRoot = Split-Path -Parent $PSCommandPath
 
 # Kill any existing server on the port
-$port = if ($env:MCP_PORT) { [int]$env:MCP_PORT } else { 10800 }
+$port = if ($env:MCP_PORT) { [int]$env:MCP_PORT } else { 10920 }
 Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue |
     ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
 

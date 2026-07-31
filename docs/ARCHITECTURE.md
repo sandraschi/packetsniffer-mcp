@@ -23,7 +23,7 @@ src/packetsniffer_mcp/
 ## Transport
 
 - **stdio**: Default — for Claude Desktop, Cursor, Windsurf
-- **HTTP**: Via `--http --port <port>` — for Tauri/webapp integration
+- **HTTP**: Via `--http --port <port>` — for REST API integration
 - **PyInstaller**: `run_server.py` — detects `MCP_PORT`/`PORT` for HTTP, falls back to stdio
 
 ## Sampling

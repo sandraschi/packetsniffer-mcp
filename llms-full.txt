@@ -12,7 +12,7 @@ MCP server for local network packet capture and PCAP file analysis
 | Mode | Command |
 |------|---------|
 | stdio (Claude Desktop / Cursor) | `uv run python -m packetsniffer_mcp` |
-| HTTP (Tauri / webapp) | `uv run python -m packetsniffer_mcp --http --port <port>` |
+| HTTP (direct access) | `uv run python -m packetsniffer_mcp --http --port <port>` |
 | CodeMode agentic | `uv run python -m packetsniffer_mcp --agentic` |
 | PyInstaller | `python run_server.py` |
 
@@ -23,7 +23,7 @@ MCP server for local network packet capture and PCAP file analysis
 | `PACKETSNIFFER_MCP_SAMPLING_BASE_URL` | `http://127.0.0.1:11434/v1` | Ollama / LM Studio base URL |
 | `PACKETSNIFFER_MCP_SAMPLING_MODEL` | `llama3.2` | Model name for sampling |
 | `PACKETSNIFFER_MCP_SAMPLING_API_KEY` | — | Optional API key for sampling endpoint |
-| `MCP_PORT` | `10800` | HTTP transport port |
+| `MCP_PORT` | `10920` | HTTP transport port |
 | `MCP_HOST` | `127.0.0.1` | HTTP transport bind address |
 | `MCP_AGENTIC` | — | Set to `1` to enable CodeMode |
 

@@ -14,12 +14,12 @@ web:
     @powershell -ExecutionPolicy Bypass -File start.ps1
 
 lint:
-    ruff check .
-    ruff format --check .
+    uv run ruff check .
+    uv run ruff format --check .
 
 fix:
-    ruff check . --fix
-    ruff format .
+    uv run ruff check . --fix
+    uv run ruff format .
 
 test:
     uv run pytest tests/ -v
@@ -28,3 +28,9 @@ mcpb-pack:
     @powershell.exe -NoProfile -File scripts/pack.ps1
 
 ci: lint test
+
+# Bootstrap: install dev deps + pre-commit hook
+bootstrap:
+    uv sync --group dev
+    uv run pre-commit install
+    Write-Host "Pre-commit hooks installed." -ForegroundColor Green

@@ -16,7 +16,7 @@ def _parse_args(server_name: str) -> argparse.Namespace:
     group.add_argument("--stdio", action="store_true", help="STDIO mode (default)")
     group.add_argument("--http", action="store_true", help="HTTP streamable mode")
     parser.add_argument("--host", default=os.getenv("MCP_HOST", "127.0.0.1"))
-    parser.add_argument("--port", type=int, default=int(os.getenv("MCP_PORT", "10800")))
+    parser.add_argument("--port", type=int, default=int(os.getenv("MCP_PORT", "10920")))
     parser.add_argument("--path", default=os.getenv("MCP_PATH", "/mcp"))
     parser.add_argument(
         "--agentic",
