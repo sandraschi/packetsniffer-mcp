@@ -2,6 +2,14 @@
 
 ## Core Tools
 
+### `packetsniffer_ops`
+One portmanteau tool (`operation` enum). Network: `list_interfaces`, `sniff`, `start_capture`, `capture_status`,
+`stop_capture`, `decode_pcap` (needs tshark), `analyze_pcap`. Hardware reverse engineering: `usb_list_hubs`,
+`usb_capture` (USBPcap; unverified live), `usb_payloads`, `btsnoop_payloads`, `diff_captures`. Every result is
+`{"success", "operation", "data"}`; failures carry `error_type` (`invalid_request`, `invalid_capture`,
+`missing_dependency`, `capture_tool_failed`, `empty_capture`, `no_hubs`, `invalid_hub`, `invalid_devices`) and,
+where useful, `suggestions`. Full parameter list is in the tool's schema.
+
 ### `help`
 List available tools, resources, and CodeMode status.
 

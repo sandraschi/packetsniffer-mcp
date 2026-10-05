@@ -17,9 +17,24 @@ portmanteau tool (`packetsniffer_ops`) instead of you wrangling Wireshark/tshark
 | **"Decode it deeply"** — after a capture, extract decoded fields Scapy misses: full DNS answers, HTTP requests, and **TLS SNI hostnames** (catches encrypted phone-home domains). Requires tshark (ships with Wireshark). | `packetsniffer_ops(operation="decode_pcap", file_path="C:/captures/dns.pcap", limit=100)` |
 | **"Why is my service unreachable?"** — capture traffic to one port and see whether packets arrive at all, and how the TCP handshake behaves. | `packetsniffer_ops(operation="sniff", filter_expr="tcp port 10813", count=30)` |
 | **"What is on my network?"** — list interfaces before capturing. | `packetsniffer_ops(operation="list_interfaces")` |
+| **"What bytes does this app send my USB device?"** — pull the host-to-device data out of a USBPcap capture, with per-endpoint totals and any captured device/interface descriptors (printer class? HID? vendor-specific?). Pure Python, no tshark. | `packetsniffer_ops(operation="usb_payloads", file_path="C:/captures/02-dot.pcap", export_path="C:/captures/02-dot.bin")` |
+| **"What does it send over Bluetooth serial?"** — RFCOMM (serial port profile) data from a Bluetooth HCI capture (btsnoop log from an Android phone, or Wireshark pcap/pcapng). | `packetsniffer_ops(operation="btsnoop_payloads", file_path="C:/captures/btsnoop_hci.log")` |
+| **"Which bytes encode the dot?"** — diff two captures (blank label vs one-dot label): shared prefix/suffix, changed byte ranges, per-transfer differences. | `packetsniffer_ops(operation="diff_captures", file_path="C:/captures/01-blank.pcap", file_path_b="C:/captures/02-dot.pcap")` |
+| **"Capture USB while I operate the device"** — wraps USBPcap's command line for a fixed duration. **Unverified live** (needs the USBPcap driver, administrator rights). | `packetsniffer_ops(operation="usb_list_hubs")` then `packetsniffer_ops(operation="usb_capture", usb_hub="\\\\.\\USBPcap1", timeout=30, save_path="C:/captures/02-dot.pcap")` |
 
 Results come back as structured JSON (flows, protocol mix, per-packet summaries)
 so the agent can interpret them directly — no pcap GUI needed.
+
+**Hardware reverse engineering (USB / Bluetooth):**
+- `usb_payloads`, `btsnoop_payloads` and `diff_captures` work on files anywhere, with no privileges and no tshark.
+  They are tested against synthetic captures (USBPcap header layout cross-checked against scapy; RFCOMM checksums
+  against the well-known DLCI 0 frames), not yet against a capture from real hardware.
+- `usb_capture` / `usb_list_hubs` drive `USBPcapCMD.exe` (`winget install desowin.USBPcap`; a capture driver,
+  administrator rights, sometimes a reboot). They are tested through a fake executable only.
+- Bluetooth: the capture must start **before** the device connects, or the L2CAP channel table is missing and only
+  frames whose checksum verifies are kept. Classic Bluetooth cannot be sniffed from Windows; use an Android phone's
+  HCI snoop log. Credit-based flow control bytes are handled; unusual RFCOMM streams may not decode.
+- Method and capture protocol: see the DYMO MobileLabeler plan in devices-mcp, `docs/LABEL_PRINTER_REVERSE_ENGINEERING.md`.
 
 **Limits / requirements:**
 - `analyze_pcap` and `decode_pcap` work on files anywhere, no privileges.
