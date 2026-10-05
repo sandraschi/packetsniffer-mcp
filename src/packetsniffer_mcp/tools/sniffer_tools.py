@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import shutil
@@ -16,6 +17,7 @@ import structlog
 from pydantic import Field
 from scapy.all import ARP, DNS, IP, TCP, UDP, conf, rdpcap, sniff, wrpcap
 
+from packetsniffer_mcp.capture import ops as capture_ops
 from packetsniffer_mcp.mcp_instance import mcp
 
 logger = structlog.get_logger(__name__)
@@ -29,10 +31,24 @@ _capture_lock = threading.Lock()
 _active_captures: dict[str, dict] = {}
 
 
-@mcp.tool(annotations={"readOnlyHint": True, "destructiveHint": False})
+# Not read-only: captures and exports write files (save_path, export_path) and usb_capture starts a capture driver.
+@mcp.tool(annotations={"readOnlyHint": False, "destructiveHint": False})
 async def packetsniffer_ops(
     operation: Annotated[
-        Literal["list_interfaces", "sniff", "analyze_pcap"],
+        Literal[
+            "list_interfaces",
+            "sniff",
+            "start_capture",
+            "capture_status",
+            "stop_capture",
+            "decode_pcap",
+            "analyze_pcap",
+            "usb_list_hubs",
+            "usb_capture",
+            "usb_payloads",
+            "btsnoop_payloads",
+            "diff_captures",
+        ],
         Field(description="Operation to perform."),
     ],
     interface: Annotated[
@@ -67,8 +83,67 @@ async def packetsniffer_ops(
     ] = None,
     limit: Annotated[
         int,
-        Field(description="Max packets to decode for 'decode_pcap' (default: 100, max: 500)."),
+        Field(
+            description="Max packets/transfers returned by 'decode_pcap', 'usb_payloads' and 'btsnoop_payloads' (default: 100, max: 500)."
+        ),
     ] = 100,
+    file_path_b: Annotated[
+        str | None,
+        Field(description="Second capture file for 'diff_captures' (file_path is the first)."),
+    ] = None,
+    direction: Annotated[
+        str,
+        Field(
+            description=(
+                "Which way the bytes travelled. USB: 'out' (host to device, default), 'in', 'both'. "
+                "Bluetooth: 'tx' (host to device, default), 'rx', 'both'. 'diff_captures' accepts either spelling."
+            )
+        ),
+    ] = "out",
+    usb_hub: Annotated[
+        str | None,
+        Field(description="USBPcap filter device for 'usb_capture', e.g. '\\\\.\\USBPcap1' (see 'usb_list_hubs')."),
+    ] = None,
+    usb_devices: Annotated[
+        str | None,
+        Field(
+            description="'usb_capture' only: comma list of device addresses to capture (default: all devices on the hub)."
+        ),
+    ] = None,
+    usb_device: Annotated[
+        int | None,
+        Field(description="USB device address to select in 'usb_payloads' / 'diff_captures' (default: all devices)."),
+    ] = None,
+    usb_endpoint: Annotated[
+        int | None,
+        Field(
+            description="USB endpoint number to select in 'usb_payloads' / 'diff_captures' (e.g. 2 for endpoint 0x02)."
+        ),
+    ] = None,
+    transfer_types: Annotated[
+        str | None,
+        Field(
+            description="Comma list of USB transfer types for 'usb_payloads': bulk, interrupt, control, isochronous (default: bulk,interrupt)."
+        ),
+    ] = None,
+    max_bytes: Annotated[
+        int,
+        Field(
+            description="Bytes of hex shown per transfer in 'usb_payloads' / 'btsnoop_payloads' (default: 256, max: 4096)."
+        ),
+    ] = 256,
+    export_path: Annotated[
+        str | None,
+        Field(
+            description="Write the selected byte stream to this file (.bin/.dat/.raw) for 'usb_payloads' / 'btsnoop_payloads'."
+        ),
+    ] = None,
+    inject_descriptors: Annotated[
+        bool,
+        Field(
+            description="'usb_capture': ask USBPcap to inject descriptors of already-connected devices (default: false)."
+        ),
+    ] = False,
 ) -> dict:
     """Network interface discovery, live packet capture, and PCAP analysis.
 
@@ -93,6 +168,19 @@ async def packetsniffer_ops(
       (catches encrypted phone-home domains). Use limit to bound output.
     - analyze_pcap: Parse a PCAP/PCAPNG capture file and summarize network flows.
 
+    Hardware-protocol reverse engineering (pure Python, no tshark needed; for working out what bytes a host
+    sends a device such as a label printer):
+    - usb_list_hubs: List USB root hubs USBPcap can capture on (needs USBPcap installed; UNVERIFIED live).
+    - usb_capture: Capture USB traffic with USBPcapCMD for 'timeout' seconds into save_path (needs USBPcap
+      and administrator rights; UNVERIFIED live). Print/operate the device during the window.
+    - usb_payloads: From a USBPcap capture, the data of each transfer (default host-to-device bulk/interrupt),
+      per-endpoint totals, and any device/interface descriptors in the capture (answers "printer class, HID,
+      or vendor-specific?"). export_path writes the concatenated stream to a .bin file.
+    - btsnoop_payloads: From a Bluetooth HCI capture (btsnoop, or pcap/pcapng link type 187/201), the RFCOMM
+      serial-port-profile data. Best effort: capture from before the connection is made.
+    - diff_captures: Compare two captures' host-to-device streams (file_path vs file_path_b): shared prefix and
+      suffix, changed byte ranges, per-transfer differences. For controlled experiments (blank label vs one dot).
+
     ## Return Format
     {"success": bool, "operation": str, "data": dict | list}
 
@@ -105,6 +193,11 @@ async def packetsniffer_ops(
     await packetsniffer_ops(operation="stop_capture", capture_id="a1b2c3d4", save_path="C:/captures/dns.pcap")
     await packetsniffer_ops(operation="decode_pcap", file_path="C:/captures/dns.pcap", limit=100)
     await packetsniffer_ops(operation="analyze_pcap", file_path="C:/captures/dns.pcap")
+    await packetsniffer_ops(operation="usb_list_hubs")
+    await packetsniffer_ops(operation="usb_capture", usb_hub="\\\\.\\USBPcap1", timeout=30, save_path="C:/captures/02-dot.pcap")
+    await packetsniffer_ops(operation="usb_payloads", file_path="C:/captures/02-dot.pcap", export_path="C:/captures/02-dot.bin")
+    await packetsniffer_ops(operation="btsnoop_payloads", file_path="C:/captures/btsnoop_hci.log", direction="tx")
+    await packetsniffer_ops(operation="diff_captures", file_path="C:/captures/01-blank.pcap", file_path_b="C:/captures/02-dot.pcap")
     """
     if operation == "list_interfaces":
         return _list_interfaces()
@@ -120,6 +213,39 @@ async def packetsniffer_ops(
         return _decode_pcap(file_path, limit)
     elif operation == "analyze_pcap":
         return _analyze_pcap_file(file_path)
+    elif operation == "usb_list_hubs":
+        return capture_ops.usb_list_hubs()
+    elif operation == "usb_capture":
+        seconds = min(max(1, timeout), MAX_SNIFF_SECONDS)
+        return await asyncio.to_thread(
+            capture_ops.usb_capture,
+            save_path,
+            hub=usb_hub,
+            seconds=seconds,
+            devices=usb_devices,
+            inject_descriptors=inject_descriptors,
+        )
+    elif operation == "usb_payloads":
+        return capture_ops.usb_payloads(
+            file_path,
+            direction=direction,
+            device=usb_device,
+            endpoint=usb_endpoint,
+            transfer_types=transfer_types,
+            limit=limit,
+            max_bytes=max_bytes,
+            export_path=export_path,
+        )
+    elif operation == "btsnoop_payloads":
+        # The shared 'direction' default is the USB spelling; map it for Bluetooth callers who leave it alone.
+        bt_direction = {"out": "tx", "in": "rx"}.get(direction, direction)
+        return capture_ops.btsnoop_payloads(
+            file_path, direction=bt_direction, limit=limit, max_bytes=max_bytes, export_path=export_path
+        )
+    elif operation == "diff_captures":
+        return capture_ops.diff_captures(
+            file_path, file_path_b, direction=direction, device=usb_device, endpoint=usb_endpoint
+        )
     return {"success": False, "error": f"Unknown operation: {operation}"}
 
 
