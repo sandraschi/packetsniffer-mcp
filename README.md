@@ -27,10 +27,13 @@ so the agent can interpret them directly — no pcap GUI needed.
 
 **Hardware reverse engineering (USB / Bluetooth):**
 - `usb_payloads`, `btsnoop_payloads` and `diff_captures` work on files anywhere, with no privileges and no tshark.
-  They are tested against synthetic captures (USBPcap header layout cross-checked against scapy; RFCOMM checksums
-  against the well-known DLCI 0 frames), not yet against a capture from real hardware.
+  They are tested against synthetic captures, and when tshark is installed a test cross-checks the same files
+  against Wireshark's own dissectors (USBPcap bus/device/endpoint/transfer type/payload, RFCOMM frame types, lengths
+  and check bytes; verified with Wireshark 4.6.8). Not yet tested against a capture from real hardware.
 - `usb_capture` / `usb_list_hubs` drive `USBPcapCMD.exe` (`winget install desowin.USBPcap`; a capture driver,
-  administrator rights, sometimes a reboot). They are tested through a fake executable only.
+  administrator rights, and a reboot before the driver attaches to the USB hubs). The flags used (`-d`, `-o`, `-A`,
+  `--devices`, `--inject-descriptors`) match the real tool's `--help` (USBPcap 1.5.4.0). Orchestration is tested
+  through a fake executable; a live capture has not been run yet.
 - Bluetooth: the capture must start **before** the device connects, or the L2CAP channel table is missing and only
   frames whose checksum verifies are kept. Classic Bluetooth cannot be sniffed from Windows; use an Android phone's
   HCI snoop log. Credit-based flow control bytes are handled; unusual RFCOMM streams may not decode.

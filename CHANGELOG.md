@@ -8,6 +8,7 @@
   `btsnoop_payloads` (Bluetooth Classic RFCOMM data from btsnoop or pcap/pcapng HCI captures),
   `diff_captures` (compare two captures' host-to-device streams), and `usb_list_hubs` / `usb_capture`
   (wrap USBPcapCMD; unverified live). New `packetsniffer_mcp.capture` package, pure Python, no tshark needed.
+  With tshark installed, `tests/test_capture_tshark.py` cross-checks the decoders against Wireshark's dissectors.
 
 ### Fixed
 - `packetsniffer_ops` advertised only `list_interfaces`, `sniff` and `analyze_pcap` in its schema, so MCP clients
