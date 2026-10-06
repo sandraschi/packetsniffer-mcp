@@ -1,4 +1,4 @@
-"""FastAPI REST API — health, diagnostics, tools, chat."""
+"""FastAPI REST API - health, diagnostics, tools, chat."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ async def health():
 
 @app.get("/api/v1/diagnostics")
 async def diagnostics():
-    """Full system diagnostics — LLM, tools, system info."""
+    """Full system diagnostics - LLM, tools, system info."""
     llm_config = get_llm_config()
     client = LLMClient(llm_config)
     llm_health = await client.health()

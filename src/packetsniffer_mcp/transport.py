@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_args(server_name: str) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=f"{server_name} — FastMCP 3.4")
+    parser = argparse.ArgumentParser(description=f"{server_name} - FastMCP 3.4")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--stdio", action="store_true", help="STDIO mode (default)")
     group.add_argument("--http", action="store_true", help="HTTP streamable mode")
