@@ -19,7 +19,7 @@ def register_all_tools(mcp=None) -> None:
 
         mcp = get_mcp()
 
-    # Tool imports trigger decorator registration — keep in order
+    # Tool imports trigger decorator registration - keep in order
     import packetsniffer_mcp.tools.agentic_workflow as _aw  # noqa: F401, I001
     import packetsniffer_mcp.tools.help_tools as _ht  # noqa: F401
     import packetsniffer_mcp.tools.chat_tool as _ct  # noqa: F401

@@ -1,6 +1,6 @@
-"""LLM chat tool — local or cloud provider via unified client."""
+"""LLM chat tool - local or cloud provider via unified client."""
 
-# ruff: noqa: E501  — Field descriptions are verbose by design
+# ruff: noqa: E501  - Field descriptions are verbose by design
 
 from __future__ import annotations
 

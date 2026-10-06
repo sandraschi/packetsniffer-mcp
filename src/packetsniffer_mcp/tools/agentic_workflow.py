@@ -46,7 +46,7 @@ async def agentic_packetsniffer_mcp_workflow(
 
     return {
         "success": True,
-        "message": "Structured fallback — use a sampling-capable MCP host for full agentic loops",
+        "message": "Structured fallback - use a sampling-capable MCP host for full agentic loops",
         "sampling_used": False,
         "suggested_tools": tools,
         "workflow_prompt": workflow_prompt,

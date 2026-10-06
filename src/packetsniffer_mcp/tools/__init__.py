@@ -1,1 +1,1 @@
-"""Tool modules — imported by tool_registration."""
+"""Tool modules - imported by tool_registration."""

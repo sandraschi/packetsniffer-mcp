@@ -1,4 +1,4 @@
-"""FastMCP sampling handler — delegates to LLM client."""
+"""FastMCP sampling handler - delegates to LLM client."""
 
 from __future__ import annotations
 
