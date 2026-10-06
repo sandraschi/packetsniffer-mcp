@@ -14,7 +14,7 @@ def build_status_card(payload: dict) -> Card:
             Row(
                 children=[
                     Metric(label="Version", value=str(payload.get("version", "0.1.0"))),
-                    Metric(label="Tools", value=str(payload.get("tool_count", "—"))),
+                    Metric(label="Tools", value=str(payload.get("tool_count", "-"))),
                 ]
             )
         ],

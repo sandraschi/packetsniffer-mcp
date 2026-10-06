@@ -1,6 +1,6 @@
-"""Unified LLM client — routes to local or cloud providers."""
+"""Unified LLM client - routes to local or cloud providers."""
 
-# ruff: noqa: E501  — generated payload lines exceed 120 chars
+# ruff: noqa: E501  - generated payload lines exceed 120 chars
 
 from __future__ import annotations
 

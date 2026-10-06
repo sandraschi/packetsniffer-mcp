@@ -1,4 +1,4 @@
-"""Multi-provider LLM configuration — local + cloud."""
+"""Multi-provider LLM configuration - local + cloud."""
 
 from __future__ import annotations
 
@@ -72,10 +72,10 @@ def get_llm_config() -> LLMProvider:
     """Get the active LLM provider from env vars or auto-detection.
 
     Environment variables:
-        PACKETSNIFFER_MCP_LLM_PROVIDER   — ollama | lmstudio | openai | anthropic | google
-        PACKETSNIFFER_MCP_LLM_BASE_URL   — override API base URL
-        PACKETSNIFFER_MCP_LLM_MODEL      — override model name
-        PACKETSNIFFER_MCP_LLM_API_KEY    — API key (required for cloud providers)
+        PACKETSNIFFER_MCP_LLM_PROVIDER   - ollama | lmstudio | openai | anthropic | google
+        PACKETSNIFFER_MCP_LLM_BASE_URL   - override API base URL
+        PACKETSNIFFER_MCP_LLM_MODEL      - override model name
+        PACKETSNIFFER_MCP_LLM_API_KEY    - API key (required for cloud providers)
     """
     provider_name = os.getenv("PACKETSNIFFER_MCP_LLM_PROVIDER", "").lower()
 

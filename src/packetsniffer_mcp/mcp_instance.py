@@ -1,4 +1,4 @@
-"""FastMCP singleton — single initialization point."""
+"""FastMCP singleton - single initialization point."""
 
 from __future__ import annotations
 
