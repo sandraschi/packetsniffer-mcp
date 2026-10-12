@@ -210,7 +210,7 @@ async def packetsniffer_ops(
     elif operation == "stop_capture":
         return _stop_capture(capture_id, save_path)
     elif operation == "decode_pcap":
-        return _decode_pcap(file_path, limit)
+        return await asyncio.to_thread(_decode_pcap, file_path, limit)
     elif operation == "analyze_pcap":
         return _analyze_pcap_file(file_path)
     elif operation == "usb_list_hubs":
